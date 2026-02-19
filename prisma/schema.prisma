@@ -1,0 +1,282 @@
+generator client {
+  provider = "prisma-client-js"
+}
+
+datasource db {
+  provider = "mysql"
+  url      = env("DATABASE_URL")
+}
+
+enum Role {
+  ADMIN
+  ADVOGADO
+  ASSISTENTE
+  LEITURA
+}
+
+enum ProcessStatus {
+  ATIVO
+  SUSPENSO
+  ARQUIVADO
+  ENCERRADO
+}
+
+enum Priority {
+  BAIXA
+  MEDIA
+  ALTA
+  URGENTE
+}
+
+enum TaskStatus {
+  ABERTA
+  EM_ANDAMENTO
+  CONCLUIDA
+  CANCELADA
+}
+
+model User {
+  id        String   @id @default(cuid())
+  createdAt DateTime @default(now())
+  updatedAt DateTime @updatedAt
+
+  name         String
+  email        String  @unique @db.VarChar(255)
+  passwordHash String  @db.VarChar(255)
+  role         Role    @default(ADVOGADO)
+  isActive     Boolean @default(true)
+
+  createdClients   Client[]   @relation("ClientCreatedBy")
+  createdProcesses Process[]  @relation("ProcessCreatedBy")
+  createdTasks     Task[]     @relation("TaskCreatedBy")
+  createdHearings  Hearing[]  @relation("HearingCreatedBy")
+  createdDocuments Document[] @relation("DocumentCreatedBy")
+  createdMovements Movement[] @relation("MovementCreatedBy")
+
+  // ✅ lado oposto da relação PjeConfig.updatedBy
+  updatedPjeConfigs  PjeConfig[]          @relation("PjeConfigUpdatedBy")
+  SmtpConfig         SmtpConfig[]
+  PasswordResetToken PasswordResetToken[]
+
+  @@index([role])
+}
+
+model Client {
+  id        String   @id @default(cuid())
+  createdAt DateTime @default(now())
+  updatedAt DateTime @updatedAt
+
+  // Colunas
+  data          DateTime? @db.DateTime(0) // Data
+  advogado      String?   @db.VarChar(120) // Advogado
+  prioridade    Priority  @default(MEDIA) // Prioridade
+  tipo          String?   @db.VarChar(80) // Tipo
+  name          String    @db.VarChar(255) // Cliente
+  cpf           String?   @db.VarChar(20) // CPF
+  senhaGovBr    String?   @db.VarChar(255) // Senha Gov.br
+  whatsapp      String?   @db.VarChar(50) // Whatsapp
+  atividade     String?   @db.Text // Atividade
+  status        String?   @db.VarChar(50) // Status
+  idProcesso    String?   @db.VarChar(60) // ID Processo
+  // Datajud (API Pública) — alias do índice do tribunal (ex.: api_publica_tjmt, api_publica_trf1)
+  datajudAlias  String?   @db.VarChar(40)
+  dataAudiencia DateTime? @db.DateTime(0) // DATA DA AUDIÊNCIA
+  linkDetalhes  String?   @db.VarChar(800) // Link para detalhes
+  email         String?   @db.VarChar(255) // Email
+
+  // Auditoria
+  createdById String?
+  createdBy   User?   @relation("ClientCreatedBy", fields: [createdById], references: [id], onDelete: SetNull)
+
+  processes       Process[]
+  DatajudMovement DatajudMovement[]
+
+  @@index([name])
+  @@index([cpf])
+  @@index([data])
+  @@index([advogado])
+  @@index([prioridade])
+  @@index([status])
+  @@index([idProcesso])
+  @@index([datajudAlias])
+  @@index([createdById])
+}
+
+model SmtpConfig {
+  id          String   @id @default("main") @db.VarChar(20)
+  updatedAt   DateTime @updatedAt
+
+  host        String?
+  port        Int?
+  secure      Boolean  @default(false)
+  username    String?
+  passwordEnc String?  @db.Text
+
+  updatedById String?
+  updatedBy   User?    @relation(fields: [updatedById], references: [id], onDelete: SetNull)
+
+  @@index([updatedById])
+}
+
+model PasswordResetToken {
+  id        String   @id @default(cuid())
+  userId    String
+  user      User     @relation(fields: [userId], references: [id], onDelete: Cascade)
+
+  tokenHash String   @db.VarChar(255)
+  expiresAt DateTime
+  usedAt    DateTime?
+
+  createdAt DateTime @default(now())
+
+  @@index([userId])
+  @@index([expiresAt])
+}
+
+
+
+model DatajudMovement {
+  id        String   @id @default(cuid())
+  createdAt DateTime @default(now())
+
+  clientId String
+  client   Client @relation(fields: [clientId], references: [id], onDelete: Cascade)
+
+  // Campos do glossário Datajud (movimentos.*)
+  codigo   Int
+  nome     String   @db.VarChar(255)
+  dataHora DateTime
+
+  // Alguns complementos úteis (armazenados "flat" ou em JSON)
+  orgaoNome        String? @db.VarChar(255)
+  complementosJson String? @db.Text
+
+  @@unique([clientId, codigo, dataHora])
+  @@index([clientId, dataHora])
+}
+
+model Process {
+  id        String   @id @default(cuid())
+  createdAt DateTime @default(now())
+  updatedAt DateTime @updatedAt
+
+  cnjNumber String  @db.VarChar(32)
+  tribunal  String? @db.VarChar(80)
+  classe    String? @db.VarChar(120)
+  assunto   String? @db.VarChar(200)
+
+  status     ProcessStatus @default(ATIVO)
+  prioridade Priority      @default(MEDIA)
+
+  clientId String
+  client   Client @relation(fields: [clientId], references: [id], onDelete: Restrict)
+
+  createdById String?
+  createdBy   User?   @relation("ProcessCreatedBy", fields: [createdById], references: [id], onDelete: SetNull)
+
+  movements Movement[]
+  tasks     Task[]
+  hearings  Hearing[]
+  documents Document[]
+
+  @@unique([cnjNumber])
+  @@index([clientId])
+  @@index([status])
+  @@index([prioridade])
+  @@index([createdById])
+}
+
+model Movement {
+  id        String   @id @default(cuid())
+  createdAt DateTime @default(now())
+
+  processId String
+  process   Process @relation(fields: [processId], references: [id], onDelete: Cascade)
+
+  date   DateTime
+  text   String   @db.Text
+  source String?  @db.VarChar(80)
+
+  createdById String?
+  createdBy   User?   @relation("MovementCreatedBy", fields: [createdById], references: [id], onDelete: SetNull)
+
+  @@index([processId, date])
+}
+
+model Task {
+  id        String   @id @default(cuid())
+  createdAt DateTime @default(now())
+  updatedAt DateTime @updatedAt
+
+  processId String
+  process   Process @relation(fields: [processId], references: [id], onDelete: Cascade)
+
+  title       String     @db.VarChar(200)
+  description String?    @db.Text
+  dueAt       DateTime?
+  status      TaskStatus @default(ABERTA)
+
+  createdById String?
+  createdBy   User?   @relation("TaskCreatedBy", fields: [createdById], references: [id], onDelete: SetNull)
+
+  @@index([processId])
+  @@index([status])
+  @@index([dueAt])
+}
+
+model Hearing {
+  id        String   @id @default(cuid())
+  createdAt DateTime @default(now())
+  updatedAt DateTime @updatedAt
+
+  processId String
+  process   Process @relation(fields: [processId], references: [id], onDelete: Cascade)
+
+  scheduledAt DateTime
+  location    String?  @db.VarChar(255)
+  link        String?  @db.VarChar(500)
+  notes       String?  @db.Text
+
+  createdById String?
+  createdBy   User?   @relation("HearingCreatedBy", fields: [createdById], references: [id], onDelete: SetNull)
+
+  @@index([processId])
+  @@index([scheduledAt])
+}
+
+model Document {
+  id        String   @id @default(cuid())
+  createdAt DateTime @default(now())
+
+  processId String
+  process   Process @relation(fields: [processId], references: [id], onDelete: Cascade)
+
+  filename    String  @db.VarChar(255)
+  mimeType    String  @db.VarChar(120)
+  url         String  @db.VarChar(800)
+  description String? @db.Text
+
+  createdById String?
+  createdBy   User?   @relation("DocumentCreatedBy", fields: [createdById], references: [id], onDelete: SetNull)
+
+  @@index([processId])
+}
+
+model PjeConfig {
+  id        String   @id @default("main") @db.VarChar(20)
+  updatedAt DateTime @updatedAt
+
+  // Integrações
+  datajudApiKey       String? @db.VarChar(255)
+  datajudDefaultAlias String? @db.VarChar(40)
+
+  // Certificado A1 (arquivo + senha criptografada)
+  certFilename String? @db.VarChar(255)
+  certPath     String? @db.VarChar(800)
+  certPassEnc  String? @db.Text
+
+  updatedById String?
+  updatedBy   User?   @relation("PjeConfigUpdatedBy", fields: [updatedById], references: [id], onDelete: SetNull)
+
+  @@index([updatedById])
+}

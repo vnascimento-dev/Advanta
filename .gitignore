@@ -1,0 +1,7 @@
+node_modules
+.next
+.env
+prisma/migrations
+mysql_data
+redis_data
+.DS_Store
