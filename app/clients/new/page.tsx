@@ -24,27 +24,27 @@ export default function NewClientPage() {
           <div className="col-12">
             <div className="card">
               <div className="card-body">
-                <div className="fw-semibold mb-3">Dados do cliente</div>
+                
 
                 <div className="row g-3">
                   <div className="col-12 col-md-3">
-                    <label className="form-label">Data</label>
+                    <label className="form-label">Data de Atendimento</label>
                     <input className="form-control" name="data" type="date" />
                   </div>
 
                   <div className="col-12 col-md-3">
                     <label className="form-label">Prioridade</label>
                     <select className="form-select" name="prioridade" defaultValue="MEDIA">
-                      <option value="BAIXA">BAIXA</option>
-                      <option value="MEDIA">MEDIA</option>
-                      <option value="ALTA">ALTA</option>
-                      <option value="URGENTE">URGENTE</option>
+                      <option value="BAIXA">Baixa</option>
+                      <option value="MEDIA">Média</option>
+                      <option value="ALTA">Alta</option>
+                      <option value="URGENTE">Urgente</option>
                     </select>
                   </div>
 
                   <div className="col-12 col-md-3">
-                    <label className="form-label">Advogado</label>
-                    <input className="form-control" name="advogado" placeholder="Ex: Dr. João Silva" />
+                    <label className="form-label">Advogado Responsável</label>
+                    <input className="form-control" name="advogado" placeholder="Ex: João Silva" />
                   </div>
 
                   <div className="col-12 col-md-3">

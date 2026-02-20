@@ -7,14 +7,14 @@ export default async function SettingsPage() {
   const session = await getSession();
 
   return (
-    <div className="card">
+    <div className="container">
       <div className="d-flex flex-wrap gap-2 align-items-center" style={{ justifyContent: "space-between" }}>
         <h1>Configurações</h1>
         <Link className="btn btn-outline-secondary" href="/settings">Voltar</Link>
       </div>
 
-      <div style={{ marginTop: 10 }} className="card">
-        <div className="text-muted small">Usuário atual</div>
+      <div style={{ marginTop: 10, padding: 10 }} className="card">
+        <div className="text-muted small">Logado como :</div>
         <div style={{ fontWeight: 800, fontSize: 18 }}>{session?.name}</div>
         <div className="text-muted small">{session?.email} • <span className="badge text-bg-light">{session?.role}</span></div>
       </div>

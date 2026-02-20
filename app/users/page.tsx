@@ -54,7 +54,7 @@ export default async function UsersPage({
                 <tr>
                   <th>Nome</th>
                   <th>Email</th>
-                  <th>Role</th>
+                  <th>Tipo</th>
                   <th>Status</th>
                   <th className="text-end">Ações</th>
                 </tr>

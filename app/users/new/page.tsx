@@ -44,10 +44,12 @@ export default async function NewUserPage() {
                   <div className="col-12 col-md-6">
                     <label className="form-label">Role *</label>
                     <select className="form-select" name="role" defaultValue="ADVOGADO">
-                      <option value="ADMIN">ADMIN</option>
-                      <option value="ADVOGADO">ADVOGADO</option>
-                      <option value="ASSISTENTE">ASSISTENTE</option>
-                      <option value="LEITURA">LEITURA</option>
+                      <option value="ADMIN">Administrador</option>
+                      <option value="ADVOGADO">Advogado</option>
+                      <option value="ASSISTENTE">Assistente</option>
+                      <option value="LEITURA">Leitura</option>
+                      <option value="DESENVOLVEDOR">Desenvolvedor</option>
+
                     </select>
                     <div className="form-text">Define permissões no sistema.</div>
                   </div>
