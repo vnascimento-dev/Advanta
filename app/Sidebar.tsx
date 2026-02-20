@@ -13,11 +13,24 @@ export default function Sidebar({ role }: { role: string }) {
 
     return (
       <Link
-        href={href}
-        className={`nav-link d-flex align-items-center gap-2 rounded ${
-          active ? "active bg-primary text-white" : "text-white"
-        }`}
-      >
+  href={href}
+  className="nav-link d-flex align-items-center gap-2 rounded"
+  style={{
+    transition: "all 0.2s ease",
+    ...(active
+      ? {
+          background: "rgba(255,255,255,0.12)",
+          backdropFilter: "blur(12px)",
+          WebkitBackdropFilter: "blur(12px)",
+          border: "1px solid rgba(255,255,255,0.15)",
+          color: "#fff",
+          fontWeight: 600,
+        }
+      : {
+          color: "rgba(255,255,255,0.75)",
+        }),
+  }}
+>
         <i className={`bi ${icon}`} />
         {!collapsed && <span>{label}</span>}
       </Link>
@@ -31,7 +44,7 @@ export default function Sidebar({ role }: { role: string }) {
         width: collapsed ? 80 : 260,
         minHeight: "100vh",
         transition: "all 0.25s ease",
-        background: "rgba(20,20,25,0.6)",
+        background: "#000000",
         backdropFilter: "blur(12px)",
       }}
     >
